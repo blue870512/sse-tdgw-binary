@@ -434,6 +434,7 @@ mod tests {
         // 创建一个只有部分字段的消息
         let mut message = Message::new(40, 2);
         message.add_field("SenderCompID".to_string(), FieldValue::Str("TEST".to_string()));
+        message.add_field("TradeDate".to_string(), FieldValue::U32(20231201));
         
         let encoded = encoder.encode(&message).unwrap();
         

@@ -135,35 +135,6 @@ impl MessageHeader {
     pub const SIZE: usize = 12;
 }
 
-// 编解码模块内部使用的字段类型枚举
-#[derive(Debug, Clone, PartialEq)]
-pub enum FieldTypeCode {
-    U8,
-    U16,
-    U32,
-    U64,
-    I64,
-    Char(usize),  // 包含长度信息
-    Price,
-    Quantity,
-    Amount,
-    Date,
-    NTime,
-    Array,  // 数组类型
-}
-
-// 编解码模块内部使用的字段值枚举
-#[derive(Debug, Clone)]
-pub enum FieldValueData {
-    U8(u8),
-    U16(u16),
-    U32(u32),
-    U64(u64),
-    I64(i64),
-    Str(String),
-    Array(Vec<FieldValueData>),  // 数组类型
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

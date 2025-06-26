@@ -301,7 +301,6 @@ impl<'a> MessageDecoder<'a> {
 mod tests {
     use super::*;
     use crate::config::manager::ConfigManager;
-    use crate::message::FieldValue;
 
     const CONFIG_STR: &str = r#"<messages>
 
