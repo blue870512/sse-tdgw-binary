@@ -1,0 +1,319 @@
+<messages>
+
+<message type="40" name="Logon">
+  <field name="SenderCompID" type="char" length="32" desc="发送方代码"/>
+  <field name="TargetCompID" type="char" length="32" desc="接收方代码"/>
+  <field name="HeartBtInt" type="u16" desc="心跳间隔（秒）"/>
+  <field name="PrtcVersion" type="char" length="8" desc="协议版本"/>
+  <field name="TradeDate" type="date" desc="交易日期（YYYYMMDD）"/>
+  <field name="QSize" type="u32" desc="客户端最大队列长度"/>
+</message>
+
+<message type="41" name="Logout">
+  <field name="SessionStatus" type="u32" desc="会话状态代码"/>
+  <field name="Text" type="char" length="64" desc="文本信息"/>
+</message>
+
+<message type="33" name="Heartbeat">
+</message>
+
+<message type="58" name="NewOrderSingle">
+  <field name="BizID" type="u32" desc="业务代码"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号，前5位有"/>
+  <field name="ClOrdID" type="char" length="10" desc="会员内部订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码，前6位有效"/>
+  <field name="Account" type="char" length="13" desc="证券账户，前10位有效"/>
+  <field name="OwnerType" type="u8" desc="订单所有者类型，暂不启"/>
+  <field name="Side" type="char" length="1" desc="买卖方向：1=买, 2=卖"/>
+  <field name="Price" type="price" desc="申报价格"/>
+  <field name="OrderQty" type="quantity" desc="申报数量"/>
+  <field name="OrdType" type="char" length="1" desc="订单类型：1=市转撤, 2=限价, 3=市转限, 4=本方最优, 5=对手方最优"/>
+  <field name="TimeInForce" type="char" length="1" desc="订单有效时间类型：0=当日有效"/>
+  <field name="TransactTime" type="ntime" desc="申报时间"/>
+  <field name="CreditTag" type="char" length="2" desc="信用标签，用于现货竞价交易业务的信用交易，取值：XY=担保品买卖, RZ=融资交易, RQ=融券交易, PC=平仓交易, 其他业务填写默认值，无意义。"/>
+  <field name="ClearingFirm" type="char" length="8" desc="结算会员代码，前5位有效"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码，前5位有效"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+
+  <extension biz_id="300060">
+    <field name="Custodian" type="char" length="3" desc="放式基金转托管的目标方代理人。对方的销售人代码000-999，不足3位左侧补 0."/>
+  </extension>
+  <extension biz_id="300070">
+    <field name="DividendSelect" type="char" length="1" desc="分红方式：U=红利转投, C=现金分红"/>
+  </extension>
+  <extension biz_id="300080">
+    <field name="DestSecurity" type="char" length="12" desc="转换的目标基金代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300090">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300091">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300092">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300093">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300094">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300095">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+</message>
+
+<message type="61" name="OrderCancel">
+  <field name="BizID" type="u32" desc="业务代码"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号"/>
+  <field name="ClOrdID" type="char" length="10" desc="会员内部订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码"/>
+  <field name="Account" type="char" length="13" desc="证券账户，暂不启用"/>
+  <field name="OwnerType" type="u8" desc="订单所有者类型，暂不启用"/>
+  <field name="Side" type="char" length="1" desc="买卖方向，暂不启用"/>
+  <field name="OrigClOrdID" type="char" length="10" desc="原始会员内部订单编号，指待撤原订单的ClOrdID"/>
+  <field name="TransactTime" type="ntime" desc="申报时间"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码，暂不启用"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+</message>
+
+<message type="32" name="ExecutionReport">
+  <field name="Pbu" type="char" length="8" desc="登录或订阅 Pbu"/>
+  <field name="SetID" type="u32" desc="平台内分区号"/>
+  <field name="ReportIndex" type="u64" desc="行报告编号，从1开始连续递增编号"/>
+  <field name="BizID" type="u32" desc="业务编号"/>
+  <field name="ExecType" type="char" length="1" desc="执行类型：0=订单申报成功, 4=订单撤销成功, 8=订单申报拒绝"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号"/>
+  <field name="ClOrdID" type="char" length="10" desc="会员内部订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码"/>
+  <field name="Account" type="char" length="13" desc="证券账户"/>
+  <field name="OwnerType" type="u8" desc="订单所有者类型，暂不启用"/>
+  <field name="Side" type="char" length="1" desc="买卖方向"/>
+  <field name="Price" type="price" desc="申报价格"/>
+  <field name="OrderQty" type="quantity" desc="申报数量"/>
+  <field name="LeavesQty" type="quantity" desc="剩余数量"/>
+  <field name="CxlQty" type="quantity" desc="撤销数量"/>
+  <field name="OrdType" type="char" length="1" desc="订单类型"/>
+  <field name="TimeInForce" type="char" length="1" desc="订单有效时间类型：0=当日有效"/>
+  <field name="OrdStatus" type="char" length="1" desc="订单状态：0=新订单, 4=已撤销, 8=已拒绝"/>
+  <field name="CreditTag" type="char" length="2" desc="信用标签"/>
+  <field name="OrigClOrdID" type="char" length="10" desc="原始会员内部订单编号，仅撤单成功（ExecType=4）时有意义"/>
+  <field name="ClearingFirm" type="char" length="8" desc="结算会员代码"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码"/>
+  <field name="OrdRejReason" type="u32" desc="订单拒绝码，仅拒绝响应（ExecType=8）时有意义"/>
+  <field name="OrdCnfmID" type="char" length="16" desc="交易所订单编号， 仅订单申报成功（ExecType=0）时有意义"/>
+  <field name="OrigOrdCnfmID" type="char" length="16" desc="暂不启用"/>
+  <field name="TradeDate" type="date" desc="交易日期"/>
+  <field name="TransactTime" type="ntime" desc="回报时间"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+
+  <extension biz_id="300060">
+    <field name="Custodian" type="char" length="3" desc="放式基金转托管的目标方代理人。对方的销售人代码000-999，不足3位左侧补 0."/>
+  </extension>
+  <extension biz_id="300070">
+    <field name="DividendSelect" type="char" length="1" desc="分红方式：U=红利转投, C=现金分红"/>
+  </extension>
+  <extension biz_id="300080">
+    <field name="DestSecurity" type="char" length="12" desc="转换的目标基金代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300090">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300091">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300092">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300093">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300094">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+  <extension biz_id="300095">
+    <field name="DestSecurity" type="char" length="12" desc="被划转的目标证券代码，前6位有效"/>
+  </extension>
+</message>
+
+<message type="59" name="OrderCancelFail">
+  <field name="Pbu" type="char" length="8" desc="登录或订阅PBU"/>
+  <field name="SetID" type="u32" desc="平台内分区号"/>
+  <field name="ReportIndex" type="u64" desc="执行报告编号"/>
+  <field name="BizID" type="u32" desc="业务编号"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号"/>
+  <field name="ClOrdID" type="char" length="10" desc="会员内部订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码"/>
+  <field name="OrigClOrdID" type="char" length="10" desc="原始会员订单编号"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码，暂不启用"/>
+  <field name="CxlRejReason" type="u32" desc="撤单拒绝码"/>
+  <field name="TradeDate" type="date" desc="交易日期"/>
+  <field name="TransactTime" type="ntime" desc="回报时间"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+</message>
+
+<message type="103" name="TradeReport">
+  <field name="Pbu" type="char" length="8" desc="登录或订阅PBU"/>
+  <field name="SetID" type="u32" desc="平台内分区号"/>
+  <field name="ReportIndex" type="u64" desc="执行报告编号"/>
+  <field name="BizID" type="u32" desc="业务编号"/>
+  <field name="ExecType" type="char" length="1" desc="订单执行状态，取值：F=成交"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号"/>
+  <field name="ClOrdID" type="char" length="10" desc="会员内部订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码"/>
+  <field name="Account" type="char" length="13" desc="证券账户"/>
+  <field name="OwnerType" type="u8" desc="订单所有者类型，暂不启用"/>
+  <field name="OrderEntryTime" type="ntime" desc="申报时间"/>
+  <field name="LastPx" type="price" desc="成交价格"/>
+  <field name="LastQty" type="quantity" desc="成交数量"/>
+  <field name="GrossTradeAmt" type="amount" desc="成交金额"/>
+  <field name="Side" type="char" length="1" desc="买卖方向"/>
+  <field name="OrderQty" type="quantity" desc="申报数量"/>
+  <field name="LeavesQty" type="quantity" desc="剩余数量"/>
+  <field name="OrdStatus" type="char" length="1" desc="订单状态（1=部分成交，2=全部成交）"/>
+  <field name="CreditTag" type="char" length="2" desc="信用标签：全空格=非信用交易, XY=担保品买卖, RZ=融资交易, RQ=融券交易, PC=平仓交易"/>
+  <field name="ClearingFirm" type="char" length="8" desc="清算会员代码"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码"/>
+  <field name="TrdCnfmID" type="char" length="16" desc="成交编号"/>
+  <field name="OrdCnfmID" type="char" length="16" desc="交易所订单编号"/>
+  <field name="TradeDate" type="date" desc="交易日期"/>
+  <field name="TransactTime" type="ntime" desc="回报时间"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+  <!-- ExtendFields 结构未定义，可按需补充 -->
+</message>
+
+<message type="301" name="RegistrationRequest">
+  <field name="BizID" type="u32" desc="业务编号"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号，前5位有效"/>
+  <field name="ClOrdID" type="char" length="10" desc="会员内部订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码，前6位有效"/>
+  <field name="Account" type="char" length="13" desc="证券账户，前10位有效"/>
+  <field name="OwnerType" type="u8" desc="订单所有者类型，暂不启用"/>
+  <field name="DesignationInstruction" type="char" length="1" desc="注册指令：1=指定交易登记，2=指定交易撤销"/>
+  <field name="DesignationTransType" type="char" length="1" desc="注册类型：1=新注册请求（New）"/>
+  <field name="OrigClOrdID" type="char" length="10" desc="原始会员订单编号，暂不启用"/>
+  <field name="TransactTime" type="ntime" desc="申报时间"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码，前5位有效，暂不启用"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+</message>
+
+<message type="302" name="RegistrationResponse">
+  <field name="Pbu" type="char" length="8" desc="登录或订阅用PBU"/>
+  <field name="SetID" type="u32" desc="平台内分区号"/>
+  <field name="ReportIndex" type="u64" desc="执行报告编号，从1开始连续递增"/>
+  <field name="BizID" type="u32" desc="业务编号"/>
+  <field name="ExecType" type="char" length="1" desc="执行类型：0=申报成功，4=撤销成功，8=申报拒绝"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号"/>
+  <field name="ClOrdID" type="char" length="10" desc="客户订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码"/>
+  <field name="Account" type="char" length="13" desc="证券账户"/>
+  <field name="OwnerType" type="u8" desc="订单所有者类型，暂不启用"/>
+  <field name="OrdStatus" type="char" length="1" desc="订单状态：0=新订单，4=已撤销，8=已拒绝"/>
+  <field name="OrigClOrdID" type="char" length="10" desc="原始订单编号，仅撤销成功时有效"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码，暂不启用"/>
+  <field name="OrdRejReason" type="u32" desc="订单拒绝码，仅拒绝响应时有效"/>
+  <field name="OrdCnfmID" type="char" length="16" desc="交易所订单编号，仅申报成功时有效"/>
+  <field name="OrigOrdCnfmID" type="char" length="16" desc="原订单确认编号，暂不启用"/>
+  <field name="TradeDate" type="date" desc="交易日期"/>
+  <field name="TransactTime" type="ntime" desc="回报时间"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+</message>
+
+<message type="306" name="NetworkPasswordRequest">
+  <field name="BizID" type="u32" desc="业务编号，固定值300100"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号"/>
+  <field name="ClOrdID" type="char" length="10" desc="客户订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="A股:799988，B股:939988；转义为激活或注销网络密码服务"/>
+  <field name="Account" type="char" length="13" desc="证券账户"/>
+  <field name="OwnerType" type="u8" desc="订单所有者类型，暂不启用"/>
+  <field name="TransactTime" type="ntime" desc="申报时间"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码，暂不启用"/>
+  <field name="Side" type="char" length="1" desc="操作类型：1=激活，2=注销"/>
+  <field name="ValidationCode" type="char" length="8" desc="激活码，仅Side=1时有效"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+</message>
+
+<message type="308" name="NetworkPasswordResponse">
+  <field name="BizID" type="u32" desc="业务编号"/>
+  <field name="BizPbu" type="char" length="8" desc="业务PBU编号"/>
+  <field name="ClOrdID" type="char" length="10" desc="会员内部订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码"/>
+  <field name="Account" type="char" length="13" desc="证券账户"/>
+  <field name="OwnerType" type="u8" desc="订单所有者类型，暂不启用"/>
+  <field name="BranchID" type="char" length="8" desc="营业部代码，暂不启用"/>
+  <field name="Side" type="char" length="1" desc="操作类型：1=激活，2=注销"/>
+  <field name="ValidationCode" type="char" length="8" desc="上交所注册时获得的激活码"/>
+  <field name="OrdRejReason" type="u32" desc="订单拒绝码，申报成功时返回值为0"/>
+  <field name="TradeDate" type="date" desc="交易日期"/>
+  <field name="TransactTime" type="ntime" desc="回报时间"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+</message>
+
+<message type="204" name="OrderReject">
+  <field name="BizID" type="u32" desc="业务编号"/>
+  <field name="BizPbu" type="char" length="8" desc="业务 PBU 编号"/>
+  <field name="ClOrdID" type="char" length="10" desc="客户订单编号"/>
+  <field name="SecurityID" type="char" length="12" desc="证券代码"/>
+  <field name="OrdRejReason" type="u32" desc="订单拒绝码"/>
+  <field name="TradeDate" type="date" desc="交易日期"/>
+  <field name="TransactTime" type="ntime" desc="回报时间"/>
+  <field name="UserInfo" type="char" length="32" desc="用户私有信息，前12位有效"/>
+</message>
+
+<message type="209" name="PlatformState">
+  <field name="PlatformID" type="u16" desc="平台标识，0=竞价平台"/>
+  <field name="PlatformState" type="u16" desc="平台状态：0=未开放，1=预开放，2=开放，3=暂停，4=关闭"/>
+</message>
+
+<message type="208" name="ExecRptInfo">
+  <field name="PlatformID" type="u16" desc="平台标识，0=竞价平台"/>
+
+  <field name="PbuList" type="array" desc="登录或订阅 BU数组">
+    <length_field name="NoGroups" type="u16" desc="登录或订阅PBU数组长度"/>
+    <struct>
+      <field name="Pbu" type="char" length="8" desc="登录或订阅 BU"/>
+    </struct>
+  </field>
+
+  <field name="SetList" type="array" desc="平台内分区号数组">
+    <length_field name="NoGroups" type="u16" desc="平台内分区号数组长度"/>
+    <struct>
+      <field name="SetID" type="u32" desc="平台内分区号"/>
+    </struct>
+  </field>
+</message>
+
+<message type="206" name="ExecRptSync">
+  <field name="SyncRequests" type="array" desc="同步请求项数组">
+    <length_field name="NoGroups" type="u16" desc="同步请求项个数"/>
+    <struct>
+      <field name="Pbu" type="char" length="8" desc="登录或订阅用PBU"/>
+      <field name="SetID" type="u32" desc="平台内分区号"/>
+      <field name="BeginReportIndex" type="u64" desc="分区预期回报序号，不支持超过2^32"/>
+    </struct>
+  </field>
+</message>
+
+
+<message type="207" name="ExecRptSyncRsp">
+  <field name="SyncResponses" type="array" desc="同步响应项数组">
+    <length_field name="NoGroups" type="u16" desc="同步响应项个数"/>
+    <struct>
+      <field name="Pbu" type="char" length="8" desc="登录或订阅用 PBU"/>
+      <field name="SetID" type="u32" desc="平台内分区号"/>
+      <field name="BeginReportIndex" type="u64" desc="分区回报序号起点"/>
+      <field name="EndReportIndex" type="u64" desc="分区最大回报序号"/>
+      <field name="RejReason" type="u32" desc="拒绝码"/>
+      <field name="Text" type="char" length="64" desc="描述信息"/>
+    </struct>
+  </field>
+</message>
+
+<message type="210" name="ExecRptEndOfStream">
+  <field name="Pbu" type="char" length="8" desc="登录或订阅用 PBU"/>
+  <field name="SetID" type="u32" desc="分区编号"/>
+  <field name="EndReportIndex" type="u64" desc="执行报告流最大序号，消息自身纳入该序列"/>
+</message>
+
+</messages>
