@@ -74,6 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  解码后消息类型: {}", decoded_message.msg_type);
         println!("  解码后序列号: {}", decoded_message.seq_num);
         println!("  解码后字段数: {}", decoded_message.fields.len());
+        println!("  解码后消息内容: {}", decoded_message.to_string());
         
         // 验证往返一致性
         assert_eq!(logon_message.msg_type, decoded_message.msg_type, "消息类型不匹配");
@@ -112,6 +113,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  解码后消息类型: {}", decoded_message.msg_type);
         println!("  解码后序列号: {}", decoded_message.seq_num);
         println!("  解码后字段数: {}", decoded_message.fields.len());
+        println!("  解码后消息内容: {}", decoded_message.to_string());
         
         // 验证关键字段
         if let Some(FieldValue::U32(biz_id)) = decoded_message.get_field("BizID") {
@@ -152,6 +154,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         println!("  解码后消息类型: {}", decoded_message.msg_type);
         println!("  解码后序列号: {}", decoded_message.seq_num);
+        println!("  解码后消息内容: {}", decoded_message.to_string());
         
         println!("  ✓ 往返编解码验证成功");
     }
@@ -191,6 +194,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         for (field_name, field_value) in &decoded_message.fields {
             println!("    {}: {:?}", field_name, field_value);
         }
+        println!("  解码后消息内容: {}", decoded_message.to_string());
         
         println!("  ✓ 扩展字段编解码验证成功");
     }

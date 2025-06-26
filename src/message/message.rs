@@ -41,4 +41,16 @@ impl Message {
     pub fn has_field(&self, name: &str) -> bool {
         self.fields.contains_key(name)
     }
+
+    pub fn to_string(&self) -> String {
+        let mut s = format!("Message {{ msg_type: {}, seq_num: {}, fields: {{", self.msg_type, self.seq_num);
+        for (i, (name, value)) in self.fields.iter().enumerate() {
+            s.push_str(&format!("{}: {:?}", name, value));
+            if i < self.fields.len() - 1 {
+                s.push_str(", ");
+            }
+        }
+        s.push_str("} }}");
+        s
+    }
 }
