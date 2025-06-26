@@ -58,14 +58,15 @@ impl<'a> MessageEncoder<'a> {
         if message.has_field("BizID") && message_def.extensions.len() > 0 {
             let msg_type = message.msg_type;
             let biz_id = message.get_field("BizID").unwrap().as_u32().unwrap();
-            let biz_extension = self.config_manager.get_extension(msg_type, biz_id)
-                .ok_or_else(|| MessageError::UnknownBizExtension(biz_id))?;
+            let biz_extension = self.config_manager.get_extension(msg_type, biz_id);
             
-            for field_def in &biz_extension.fields {
-                let field_value = message.get_field(&field_def.name)
-                    .cloned()
-                    .unwrap_or_else(|| self.get_default_value(&field_def, None));
-                self.encode_field(&field_def, None, &field_value)?;
+            if let Some(biz_extension) = biz_extension {
+                for field_def in &biz_extension.fields {
+                    let field_value = message.get_field(&field_def.name)
+                        .cloned()
+                        .unwrap_or_else(|| self.get_default_value(&field_def, None));
+                    self.encode_field(&field_def, None, &field_value)?;
+                }
             }
         }
         

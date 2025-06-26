@@ -75,12 +75,13 @@ impl<'a> MessageDecoder<'a> {
         // 解析扩展字段
         if message.has_field("BizID") && message_def.extensions.len() > 0 {
             let biz_id = message.get_field("BizID").unwrap().as_u32().unwrap();
-            let biz_extension = self.config_manager.get_extension(msg_type, biz_id)
-                .ok_or_else(|| MessageError::UnknownBizExtension(biz_id))?;
+            let biz_extension = self.config_manager.get_extension(msg_type, biz_id);
 
-            for field_def in &biz_extension.fields {
-                let field_value = self.decode_field(&field_def, None)?;
-                message.add_field(field_def.name.clone(), field_value);
+            if let Some(biz_extension) = biz_extension {
+                for field_def in &biz_extension.fields {
+                    let field_value = self.decode_field(&field_def, None)?;
+                    message.add_field(field_def.name.clone(), field_value);
+                }
             }
         }
 

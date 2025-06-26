@@ -1,8 +1,7 @@
 use sse_tdgw_binary::{
     codec::{encoder::MessageEncoder, decoder::MessageDecoder},
-    config::{manager::ConfigManager, types::*},
+    config::{manager::ConfigManager},
     message::{Message, FieldValue},
-    util::MessageResult,
 };
 use std::time::Instant;
 
@@ -75,12 +74,45 @@ mod extension_codec_tests {
         config_manager
     }
 
-    /// 创建包含多个extension的测试消息
-    fn create_multi_extension_message() -> Message {
+    /// 创建包含extension的测试消息
+    fn create_extension_message() -> Message {
+        let mut message = Message::new(3001, 12345);
+        
+        // 基础字段 + BizID (设置为300060以匹配基金业务extension)
+        message.add_field("BizID".to_string(), FieldValue::U32(300060));
+        message.add_field("OrderID".to_string(), FieldValue::U32(1001));
+        message.add_field("Symbol".to_string(), FieldValue::Str("000001.SZ".to_string()));
+        message.add_field("Price".to_string(), FieldValue::Float(123.45000)); // 123.45000
+        message.add_field("Quantity".to_string(), FieldValue::Float(1000000.0)); // 1000000.000
+        
+        // Extension 300060: 基金业务
+        message.add_field("Custodian".to_string(), FieldValue::Str("001".to_string()));
+        message.add_field("FundType".to_string(), FieldValue::U8(1));
+        
+        // Extension 300070: 分红业务
+        message.add_field("DividendSelect".to_string(), FieldValue::Str("U".to_string()));
+        message.add_field("DividendAmount".to_string(), FieldValue::I64(5000000000)); // 50000.00000
+        message.add_field("DividendDate".to_string(), FieldValue::U32(20231225));
+        
+        // Extension 300080: 转换业务
+        message.add_field("DestSecurity".to_string(), FieldValue::Str("000002.SZ".to_string()));
+        message.add_field("ConvertRatio".to_string(), FieldValue::I64(1500000)); // 1500.000
+        message.add_field("ConvertTime".to_string(), FieldValue::U64(12345678901234));
+        
+        // Extension 300090: 复杂字段类型
+        message.add_field("ComplexU64".to_string(), FieldValue::U64(18446744073709551615));
+        message.add_field("ComplexI64".to_string(), FieldValue::I64(-9223372036854775808));
+        message.add_field("ComplexAmount".to_string(), FieldValue::I64(99999999999999999)); // 999999999999.99999
+        
+        message
+    }
+
+    /// 创建不匹配bizid的extension的测试消息
+    fn create_mismatch_extension_message() -> Message {
         let mut message = Message::new(3001, 12345);
         
         // 基础字段 + BizID
-        message.add_field("BizID".to_string(), FieldValue::U32(300060));
+        message.add_field("BizID".to_string(), FieldValue::U32(300010));
         message.add_field("OrderID".to_string(), FieldValue::U32(1001));
         message.add_field("Symbol".to_string(), FieldValue::Str("000001.SZ".to_string()));
         message.add_field("Price".to_string(), FieldValue::Float(123.45000)); // 123.45000
@@ -129,11 +161,11 @@ mod extension_codec_tests {
         message
     }
 
-    /// 测试多个extension的编解码往返
+    /// 测试extension的编解码往返
     #[test]
-    fn test_multi_extension_encode_decode() {
+    fn test_extension_encode_decode() {
         let config_manager = create_extension_test_config_manager();
-        let original_message = create_multi_extension_message();
+        let original_message = create_extension_message();
         
         // 编码
         let mut encoder = MessageEncoder::new(&config_manager);
@@ -163,6 +195,58 @@ mod extension_codec_tests {
         let custodian = decoded_message.get_field("Custodian").as_ref().unwrap().to_string().trim().to_string();
         assert_eq!(Some(&FieldValue::Str(custodian)), original_message.get_field("Custodian"), "Custodian mismatch");
         assert_eq!(decoded_message.get_field("FundType"), original_message.get_field("FundType"), "FundType mismatch");
+        
+        // 验证Extension 300070字段
+        assert_eq!(decoded_message.get_field("DividendSelect"), None, "DividendSelect mismatch");
+        assert_eq!(decoded_message.get_field("DividendAmount"), None, "DividendAmount mismatch");
+        assert_eq!(decoded_message.get_field("DividendDate"), None, "DividendDate mismatch");
+        
+        // 验证Extension 300080字段
+        assert_eq!(decoded_message.get_field("DestSecurity"), None, "DestSecurity mismatch");
+        assert_eq!(decoded_message.get_field("ConvertRatio"), None, "ConvertRatio mismatch");
+        assert_eq!(decoded_message.get_field("ConvertTime"), None, "ConvertTime mismatch");
+        
+        // 验证Extension 300090字段
+        assert_eq!(decoded_message.get_field("ComplexU64"), None, "ComplexU64 mismatch");
+        assert_eq!(decoded_message.get_field("ComplexI64"), None, "ComplexI64 mismatch");
+        assert_eq!(decoded_message.get_field("ComplexAmount"), None, "ComplexAmount mismatch");
+        
+        println!("✓ Multi-extension encode/decode test passed");
+    }
+
+    /// 测试不匹配bizid的extension的编解码往返
+    #[test]
+    fn test_mismatch_extension_encode_decode() {
+        let config_manager = create_extension_test_config_manager();
+        let original_message = create_mismatch_extension_message();
+        
+        // 编码
+        let mut encoder = MessageEncoder::new(&config_manager);
+        let encoded_data = encoder.encode(&original_message)
+            .expect("Failed to encode multi-extension message");
+        
+        println!("Multi-extension message encoded size: {} bytes", encoded_data.len());
+        println!("Encoded data (hex): {}", hex::encode(&encoded_data));
+        
+        // 解码
+        let mut decoder = MessageDecoder::new(&config_manager, &encoded_data);
+        let decoded_message = decoder.decode()
+            .expect("Failed to decode multi-extension message");
+        
+        // 验证基本信息
+        assert_eq!(decoded_message.msg_type, original_message.msg_type, "Message type mismatch");
+        assert_eq!(decoded_message.seq_num, original_message.seq_num, "Sequence number mismatch");
+        assert_ne!(decoded_message.fields.len(), original_message.fields.len(), "Field count mismatch");
+        
+        // 验证基础字段
+        assert_eq!(decoded_message.get_field("OrderID"), original_message.get_field("OrderID"), "OrderID mismatch");
+        assert_eq!(decoded_message.get_field("Symbol"), original_message.get_field("Symbol"), "Symbol mismatch");
+        assert_eq!(decoded_message.get_field("Price"), original_message.get_field("Price"), "Price mismatch");
+        assert_eq!(decoded_message.get_field("Quantity"), original_message.get_field("Quantity"), "Quantity mismatch");
+        
+        // 验证Extension 300060字段
+        assert_eq!(decoded_message.get_field("Custodian"), None, "Custodian mismatch");
+        assert_eq!(decoded_message.get_field("FundType"), None, "FundType mismatch");
         
         // 验证Extension 300070字段
         assert_eq!(decoded_message.get_field("DividendSelect"), None, "DividendSelect mismatch");
@@ -300,7 +384,7 @@ mod extension_codec_tests {
     #[test]
     fn test_extension_performance() {
         let config_manager = create_extension_test_config_manager();
-        let message = create_multi_extension_message();
+        let message = create_extension_message();
         
         let iterations = 1000;
         
@@ -394,7 +478,7 @@ mod extension_codec_tests {
         let test_cases = vec![
             ("No Extension", create_no_extension_message()),
             ("Single Extension", create_simple_extension_message()),
-            ("Multi Extension", create_multi_extension_message()),
+            ("Multi Extension", create_extension_message()),
         ];
         
         for (name, message) in test_cases {
@@ -425,7 +509,7 @@ mod extension_codec_tests {
         
         // 创建批量消息
         for i in 0..batch_size {
-            let mut message = create_multi_extension_message();
+            let mut message = create_extension_message();
             message.seq_num = i as u32;
             // 修改一些字段值以确保每个消息都不同
             message.add_field("OrderID".to_string(), FieldValue::U32(1000 + i as u32));
