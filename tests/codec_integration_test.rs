@@ -1,9 +1,6 @@
-use std::collections::HashMap;
-use indexmap::IndexMap;
 use sse_tdgw_binary::codec::encoder::MessageEncoder;
 use sse_tdgw_binary::codec::decoder::MessageDecoder;
 use sse_tdgw_binary::config::manager::ConfigManager;
-use sse_tdgw_binary::config::types::{MessageDef, FieldDef, BaseFieldDef, FieldType};
 use sse_tdgw_binary::message::{Message, FieldValue};
 
 /// 编解码集成测试

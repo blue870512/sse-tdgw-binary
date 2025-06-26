@@ -179,7 +179,7 @@ mod performance_tests {
         let config_manager = create_performance_config_manager();
         let iterations = 10000;
         
-        let (elapsed, ops_per_sec) = run_performance_test(
+        let (_, ops_per_sec) = run_performance_test(
             "Small Message Encode",
             iterations,
             || {
@@ -204,7 +204,7 @@ mod performance_tests {
         let encoded_data = encoder.encode(&message).expect("Encode failed");
         let iterations = 10000;
         
-        let (elapsed, ops_per_sec) = run_performance_test(
+        let (_, ops_per_sec) = run_performance_test(
             "Small Message Decode",
             iterations,
             || {
@@ -225,7 +225,7 @@ mod performance_tests {
         let config_manager = create_performance_config_manager();
         let iterations = 5000;
         
-        let (elapsed, ops_per_sec) = run_performance_test(
+        let (_, ops_per_sec) = run_performance_test(
             "Medium Message Roundtrip",
             iterations,
             || {
@@ -250,7 +250,7 @@ mod performance_tests {
         let config_manager = create_performance_config_manager();
         let iterations = 1000;
         
-        let (elapsed, ops_per_sec) = run_performance_test(
+        let (_, ops_per_sec) = run_performance_test(
             "Large Message Roundtrip",
             iterations,
             || {
@@ -275,7 +275,7 @@ mod performance_tests {
         let config_manager = create_performance_config_manager();
         let iterations = 2000;
         
-        let (elapsed, ops_per_sec) = run_performance_test(
+        let (_, ops_per_sec) = run_performance_test(
             "Small Array Message (10 items)",
             iterations,
             || {
@@ -300,7 +300,7 @@ mod performance_tests {
         let config_manager = create_performance_config_manager();
         let iterations = 100;
         
-        let (elapsed, ops_per_sec) = run_performance_test(
+        let (_, ops_per_sec) = run_performance_test(
             "Large Array Message (1000 items)",
             iterations,
             || {
@@ -381,7 +381,6 @@ mod performance_tests {
     #[test]
     fn test_memory_efficiency() {
         let config_manager = create_performance_config_manager();
-        let iterations = 1000;
         
         // 测试编码后的数据大小
         let small_message = create_small_message(12345);
@@ -439,7 +438,7 @@ mod performance_tests {
             let message = message_fn();
             
             // 编码性能
-            let (encode_time, encode_ops) = run_performance_test(
+            let (_, encode_ops) = run_performance_test(
                 &format!("{} Encode", name),
                 iterations,
                 || {
@@ -452,7 +451,7 @@ mod performance_tests {
             let mut encoder = MessageEncoder::new(&config_manager);
             let encoded_data = encoder.encode(&message).expect("Encode failed");
             
-            let (decode_time, decode_ops) = run_performance_test(
+            let (_, decode_ops) = run_performance_test(
                 &format!("{} Decode", name),
                 iterations,
                 || {
