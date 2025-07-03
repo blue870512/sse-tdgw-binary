@@ -301,6 +301,8 @@ impl<'a> MessageDecoder<'a> {
 mod tests {
     use super::*;
     use crate::config::manager::ConfigManager;
+    use crate::codec::encoder::MessageEncoder;
+    use crate::message::{Message, FieldValue};
 
     const CONFIG_STR: &str = r#"<messages>
 
@@ -378,7 +380,39 @@ mod tests {
     </struct>
   </field>
 </message>
+
+<message type="100" name="TestMessage">
+  <field name="TestU8" type="u8" desc="测试U8字段"/>
+  <field name="TestU16" type="u16" desc="测试U16字段"/>
+  <field name="TestU32" type="u32" desc="测试U32字段"/>
+  <field name="TestU64" type="u64" desc="测试U64字段"/>
+  <field name="TestI64" type="i64" desc="测试I64字段"/>
+  <field name="TestChar" type="char" length="10" desc="测试字符串字段"/>
+  <field name="TestPrice" type="price" desc="测试价格字段"/>
+  <field name="TestQuantity" type="quantity" desc="测试数量字段"/>
+  <field name="TestAmount" type="amount" desc="测试金额字段"/>
+  <field name="TestDate" type="date" desc="测试日期字段"/>
+  <field name="TestNTime" type="ntime" desc="测试时间字段"/>
+</message>
+
 </messages>"#;
+
+const CONFIG_SUBSET_STR: &str = r#"<messages>
+<message type="100" name="TestMessage">
+  <field name="TestU8" type="u8" desc="测试U8字段"/>
+  <field name="TestU16" type="u16" desc="测试U16字段"/>
+  <field name="TestU32" type="u32" desc="测试U32字段"/>
+  <field name="TestU64" type="u64" desc="测试U64字段"/>
+  <field name="TestI64" type="i64" desc="测试I64字段"/>
+  <field name="TestChar" type="char" length="10" desc="测试字符串字段"/>
+  <field name="TestPrice" type="price" desc="测试价格字段"/>
+  <field name="TestQuantity" type="quantity" desc="测试数量字段"/>
+  <field name="TestAmount" type="amount" desc="测试金额字段"/>
+  <field name="TestDate" type="date" desc="测试日期字段"/>
+</message>
+
+</messages>
+"#;
 
     const LOGIN_MESSAGE: [u8; 98] = [
         0, 0, 0, 40, 0, 0, 0, 1, 0, 0, 0, 82, 83, 69, 78, 68, 
@@ -389,11 +423,100 @@ mod tests {
         48, 32, 32, 32, 32, 32, 1, 52, 180, 33, 0, 0, 3, 232, 0, 0, 0, 58
     ];
     
-    #[test]
-    fn test_decode() {
+    /// 创建测试用的配置管理器
+    fn create_test_config_manager() -> ConfigManager {
         let mut config_manager = ConfigManager::new();
         config_manager.load_from_str(CONFIG_STR).unwrap();
+        config_manager
+    }
 
+    /// 创建测试用的配置管理器子集
+    /// 只包含消息类型为100的消息定义
+    fn create_test_config_manager_subset() -> ConfigManager {
+        let mut config_manager = ConfigManager::new();
+        config_manager.load_from_str(CONFIG_SUBSET_STR).unwrap();
+        config_manager
+    }
+
+    /// 创建包含各种字段类型的测试消息
+    fn create_test_message() -> Message {
+        let mut message = Message::new(100, 12345);
+        
+        // 添加各种类型的字段
+        message.add_field("TestU8".to_string(), FieldValue::U8(255));
+        message.add_field("TestU16".to_string(), FieldValue::U16(65535));
+        message.add_field("TestU32".to_string(), FieldValue::U32(4294967295));
+        message.add_field("TestU64".to_string(), FieldValue::U64(18446744073709551615));
+        message.add_field("TestI64".to_string(), FieldValue::I64(-9223372036854775808));
+        message.add_field("TestChar".to_string(), FieldValue::Str("Hello".to_string()));
+        message.add_field("TestPrice".to_string(), FieldValue::Float(123.45));
+        message.add_field("TestQuantity".to_string(), FieldValue::Float(1000.123));
+        message.add_field("TestAmount".to_string(), FieldValue::Float(50000.12345));
+        message.add_field("TestDate".to_string(), FieldValue::U32(20231225));
+        message.add_field("TestNTime".to_string(), FieldValue::U64(1234567890123));
+        
+        message
+    }
+
+    /// 创建包含扩展字段的测试消息
+    fn create_extension_test_message() -> Message {
+        let mut message = Message::new(58, 54321);
+        
+        // 基础字段
+        message.add_field("BizID".to_string(), FieldValue::U32(300060));
+        message.add_field("BizPbu".to_string(), FieldValue::Str("PBU001".to_string()));
+        message.add_field("ClOrdID".to_string(), FieldValue::Str("ORD123".to_string()));
+        message.add_field("SecurityID".to_string(), FieldValue::Str("000001.SZ".to_string()));
+        message.add_field("Account".to_string(), FieldValue::Str("1234567890".to_string()));
+        message.add_field("OwnerType".to_string(), FieldValue::U8(1));
+        message.add_field("Side".to_string(), FieldValue::Str("1".to_string()));
+        message.add_field("Price".to_string(), FieldValue::Float(10.50));
+        message.add_field("OrderQty".to_string(), FieldValue::Float(1000.0));
+        message.add_field("OrdType".to_string(), FieldValue::Str("2".to_string()));
+        message.add_field("TimeInForce".to_string(), FieldValue::Str("0".to_string()));
+        message.add_field("TransactTime".to_string(), FieldValue::U64(1234567890123));
+        message.add_field("CreditTag".to_string(), FieldValue::Str("XY".to_string()));
+        message.add_field("ClearingFirm".to_string(), FieldValue::Str("FIRM001".to_string()));
+        message.add_field("BranchID".to_string(), FieldValue::Str("BR001".to_string()));
+        message.add_field("UserInfo".to_string(), FieldValue::Str("USER123".to_string()));
+        
+        // 扩展字段 (300060)
+        message.add_field("Custodian".to_string(), FieldValue::Str("001".to_string()));
+        
+        message
+    }
+
+    /// 创建包含数组字段的测试消息
+    fn create_array_test_message() -> Message {
+        let mut message = Message::new(206, 98765);
+        
+        // 创建数组元素
+        let mut array_elements = Vec::new();
+        
+        // 第一个元素
+        let element1 = vec![
+            FieldValue::Str("PBU001".to_string()),
+            FieldValue::U32(1),
+            FieldValue::U64(100),
+        ];
+        array_elements.push(element1);
+        
+        // 第二个元素
+        let element2 = vec![
+            FieldValue::Str("PBU002".to_string()),
+            FieldValue::U32(2),
+            FieldValue::U64(200),
+        ];
+        array_elements.push(element2);
+        
+        message.add_field("SyncRequests".to_string(), FieldValue::Array(array_elements));
+        
+        message
+    }
+
+    #[test]
+    fn test_decode_original() {
+        let config_manager = create_test_config_manager();
         let mut decoder = MessageDecoder::new(&config_manager, &LOGIN_MESSAGE);
         let message = decoder.decode().unwrap();
 
@@ -402,5 +525,221 @@ mod tests {
         assert_eq!(message.get_field("SenderCompID").unwrap().to_string().trim(), "SENDER123");
         let trade_date: u32 = message.get_field("TradeDate").unwrap().as_u32().unwrap();
         assert_eq!(trade_date, 20231201u32);
+    }
+
+    #[test]
+    fn test_encode_decode_roundtrip_basic_types() {
+        let config_manager = create_test_config_manager();
+        let original_message = create_test_message();
+        
+        // 编码消息
+        let mut encoder = MessageEncoder::new(&config_manager);
+        let encoded_data = encoder.encode(&original_message).unwrap();
+        
+        // 解码消息
+        let mut decoder = MessageDecoder::new(&config_manager, &encoded_data);
+        let decoded_message = decoder.decode().unwrap();
+        
+        // 验证消息头
+        assert_eq!(decoded_message.msg_type, original_message.msg_type);
+        assert_eq!(decoded_message.seq_num, original_message.seq_num);
+        
+        // 验证各种字段类型
+        assert_eq!(decoded_message.get_field("TestU8").unwrap().as_u8().unwrap(), 255);
+        assert_eq!(decoded_message.get_field("TestU16").unwrap().as_u16().unwrap(), 65535);
+        assert_eq!(decoded_message.get_field("TestU32").unwrap().as_u32().unwrap(), 4294967295);
+        assert_eq!(decoded_message.get_field("TestU64").unwrap().as_u64().unwrap(), 18446744073709551615);
+        assert_eq!(decoded_message.get_field("TestI64").unwrap().as_i64().unwrap(), -9223372036854775808);
+        assert_eq!(decoded_message.get_field("TestChar").unwrap().to_string().trim(), "Hello");
+        
+        // 验证浮点数字段（考虑精度）
+        let price = decoded_message.get_field("TestPrice").unwrap().as_f64().unwrap();
+        assert!((price - 123.45).abs() < 0.00001);
+        
+        let quantity = decoded_message.get_field("TestQuantity").unwrap().as_f64().unwrap();
+        assert!((quantity - 1000.123).abs() < 0.001);
+        
+        let amount = decoded_message.get_field("TestAmount").unwrap().as_f64().unwrap();
+        assert!((amount - 50000.12345).abs() < 0.00001);
+        
+        // 验证日期和时间字段
+        assert_eq!(decoded_message.get_field("TestDate").unwrap().as_u32().unwrap(), 20231225);
+        assert_eq!(decoded_message.get_field("TestNTime").unwrap().as_u64().unwrap(), 1234567890123);
+    }
+
+    #[test]
+    fn test_encode_decode_roundtrip_with_extensions() {
+        let config_manager = create_test_config_manager();
+        let original_message = create_extension_test_message();
+        
+        // 编码消息
+        let mut encoder = MessageEncoder::new(&config_manager);
+        let encoded_data = encoder.encode(&original_message).unwrap();
+        
+        // 解码消息
+        let mut decoder = MessageDecoder::new(&config_manager, &encoded_data);
+        let decoded_message = decoder.decode().unwrap();
+        
+        // 验证消息头
+        assert_eq!(decoded_message.msg_type, original_message.msg_type);
+        assert_eq!(decoded_message.seq_num, original_message.seq_num);
+        
+        // 验证基础字段
+        assert_eq!(decoded_message.get_field("BizID").unwrap().as_u32().unwrap(), 300060);
+        assert_eq!(decoded_message.get_field("BizPbu").unwrap().to_string().trim(), "PBU001");
+        assert_eq!(decoded_message.get_field("ClOrdID").unwrap().to_string().trim(), "ORD123");
+        assert_eq!(decoded_message.get_field("SecurityID").unwrap().to_string().trim(), "000001.SZ");
+        assert_eq!(decoded_message.get_field("Side").unwrap().to_string().trim(), "1");
+        
+        // 验证价格和数量字段
+        let price = decoded_message.get_field("Price").unwrap().as_f64().unwrap();
+        assert!((price - 10.50).abs() < 0.00001);
+        
+        let quantity = decoded_message.get_field("OrderQty").unwrap().as_f64().unwrap();
+        assert!((quantity - 1000.0).abs() < 0.001);
+        
+        // 验证扩展字段
+        assert_eq!(decoded_message.get_field("Custodian").unwrap().to_string().trim(), "001");
+    }
+
+    #[test]
+    fn test_encode_decode_roundtrip_with_arrays() {
+        let config_manager = create_test_config_manager();
+        let original_message = create_array_test_message();
+        
+        // 编码消息
+        let mut encoder = MessageEncoder::new(&config_manager);
+        let encoded_data = encoder.encode(&original_message).unwrap();
+        
+        // 解码消息
+        let mut decoder = MessageDecoder::new(&config_manager, &encoded_data);
+        let decoded_message = decoder.decode().unwrap();
+        
+        // 验证消息头
+        assert_eq!(decoded_message.msg_type, original_message.msg_type);
+        assert_eq!(decoded_message.seq_num, original_message.seq_num);
+        
+        // 验证数组字段
+        let array_field = decoded_message.get_field("SyncRequests").unwrap();
+        if let FieldValue::Array(elements) = array_field {
+            assert_eq!(elements.len(), 2);
+            
+            // 验证第一个元素
+            let element1 = &elements[0];
+            assert_eq!(element1[0].to_string().trim(), "PBU001");
+            assert_eq!(element1[1].as_u32().unwrap(), 1);
+            assert_eq!(element1[2].as_u64().unwrap(), 100);
+            
+            // 验证第二个元素
+            let element2 = &elements[1];
+            assert_eq!(element2[0].to_string().trim(), "PBU002");
+            assert_eq!(element2[1].as_u32().unwrap(), 2);
+            assert_eq!(element2[2].as_u64().unwrap(), 200);
+        } else {
+            panic!("Expected array field");
+        }
+    }
+
+    #[test]
+    fn test_decode_subset_fields() {
+        let config_manager = create_test_config_manager();
+        let config_subset_manager = create_test_config_manager_subset();
+        let original_message = create_test_message();
+        
+        // 编码完整消息
+        let mut encoder = MessageEncoder::new(&config_manager);
+        let encoded_data = encoder.encode(&original_message).unwrap();
+        
+        // 解码消息
+        let mut decoder = MessageDecoder::new(&config_subset_manager, &encoded_data);
+        let decoded_message = decoder.decode().unwrap();
+        
+        // 只验证字段子集
+        let test_fields = vec![
+            ("TestU8", FieldValue::U8(255)),
+            ("TestU32", FieldValue::U32(4294967295)),
+            ("TestChar", FieldValue::Str("Hello".to_string())),
+            ("TestDate", FieldValue::U32(20231225)),
+        ];
+        
+        for (field_name, expected_value) in test_fields {
+            let decoded_value = decoded_message.get_field(field_name).unwrap();
+            match (&expected_value, decoded_value) {
+                (FieldValue::U8(expected), FieldValue::U8(actual)) => {
+                    assert_eq!(expected, actual, "Field {} mismatch", field_name);
+                },
+                (FieldValue::U32(expected), FieldValue::U32(actual)) => {
+                    assert_eq!(expected, actual, "Field {} mismatch", field_name);
+                },
+                (FieldValue::Str(expected), FieldValue::Str(actual)) => {
+                    assert_eq!(expected.trim(), actual.trim(), "Field {} mismatch", field_name);
+                },
+                _ => panic!("Unexpected field type for {}", field_name),
+            }
+        }
+    }
+
+    #[test]
+    fn test_decode_error_cases() {
+        let config_manager = create_test_config_manager();
+        
+        // 测试消息头太短
+        let short_header = [0u8; 8];
+        let mut decoder = MessageDecoder::new(&config_manager, &short_header);
+        assert!(matches!(decoder.decode(), Err(MessageError::HeaderTooShort)));
+        
+        // 测试未知消息类型
+        let unknown_msg_type = [
+            0, 0, 0, 99, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 100
+        ];
+        let mut decoder = MessageDecoder::new(&config_manager, &unknown_msg_type);
+        assert!(matches!(decoder.decode(), Err(MessageError::UnknownMessageType(99))));
+        
+        // 测试消息体太短
+        let short_body = [
+            0, 0, 0, 40, 0, 0, 0, 1, 0, 0, 0, 10, // 声明body长度为10
+            1, 2, 3, 4, 5, // 但实际只有5字节
+        ];
+        let mut decoder = MessageDecoder::new(&config_manager, &short_body);
+        assert!(matches!(decoder.decode(), Err(MessageError::BodyTooShort)));
+    }
+
+    #[test]
+    fn test_decode_edge_values() {
+        let config_manager = create_test_config_manager();
+        
+        // 创建包含边界值的消息
+        let mut message = Message::new(100, 0);
+        message.add_field("TestU8".to_string(), FieldValue::U8(0));
+        message.add_field("TestU16".to_string(), FieldValue::U16(0));
+        message.add_field("TestU32".to_string(), FieldValue::U32(0));
+        message.add_field("TestU64".to_string(), FieldValue::U64(0));
+        message.add_field("TestI64".to_string(), FieldValue::I64(0));
+        message.add_field("TestChar".to_string(), FieldValue::Str("".to_string()));
+        message.add_field("TestPrice".to_string(), FieldValue::Float(0.0));
+        message.add_field("TestQuantity".to_string(), FieldValue::Float(0.0));
+        message.add_field("TestAmount".to_string(), FieldValue::Float(0.0));
+        message.add_field("TestDate".to_string(), FieldValue::U32(20000101));
+        message.add_field("TestNTime".to_string(), FieldValue::U64(0));
+        
+        // 编码和解码
+        let mut encoder = MessageEncoder::new(&config_manager);
+        let encoded_data = encoder.encode(&message).unwrap();
+        
+        let mut decoder = MessageDecoder::new(&config_manager, &encoded_data);
+        let decoded_message = decoder.decode().unwrap();
+        
+        // 验证边界值
+        assert_eq!(decoded_message.get_field("TestU8").unwrap().as_u8().unwrap(), 0);
+        assert_eq!(decoded_message.get_field("TestU16").unwrap().as_u16().unwrap(), 0);
+        assert_eq!(decoded_message.get_field("TestU32").unwrap().as_u32().unwrap(), 0);
+        assert_eq!(decoded_message.get_field("TestU64").unwrap().as_u64().unwrap(), 0);
+        assert_eq!(decoded_message.get_field("TestI64").unwrap().as_i64().unwrap(), 0);
+        
+        let price = decoded_message.get_field("TestPrice").unwrap().as_f64().unwrap();
+        assert!((price - 0.0).abs() < 0.00001);
+        
+        assert_eq!(decoded_message.get_field("TestDate").unwrap().as_u32().unwrap(), 20000101);
+        assert_eq!(decoded_message.get_field("TestNTime").unwrap().as_u64().unwrap(), 0);
     }
 }
